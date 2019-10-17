@@ -1,6 +1,6 @@
 import binascii
 import filetimes
-from kmsPidGenFromDB import epidGenerator
+from kmsPidGenFromDB import epidGenerator, kmsdb
 import os
 import os.path
 import sys
@@ -24,8 +24,6 @@ except ImportError:
 
 from xmltok import tokenize
 from uxml2dict import parse
-
-kmsdb = os.path.join(os.path.dirname(__file__), 'KmsDataBase.xml')
 
 licenseStates = {
 	0 : "Unlicensed",
@@ -120,10 +118,8 @@ class kmsBase:
 	def __init__(self, data, config):
 		self.data = data
 		self.config = config
-
-	def serverLogic(self, kmsRequest):
-		if self.config['sqlite'] and self.config['dbSupport']:
-			self.dbName = 'clients.db'
+		self.dbName = os.path.join(os.path.dirname(__file__), 'clients.db')
+		if self.config.get('sqlite', False) and self.config.get('dbSupport', False):
 			if not os.path.isfile(self.dbName):
 				# Initialize the database.
 				con = None
@@ -140,6 +136,8 @@ class kmsBase:
 					if con:
 						con.commit()
 						con.close()
+
+	def serverLogic(self, kmsRequest):
 
 		if self.config['debug']:
 			print("KMS Request Bytes:", binascii.b2a_hex(kmsRequest.__bytes__()))
